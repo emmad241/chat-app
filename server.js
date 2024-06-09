@@ -1,14 +1,19 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const { Server } = socketIo;
+const cors = require('cors');
 
 const app = express();
+
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+    },
+});
 
 const PORT = process.env.PORT || 3000;
-
-app.use(express.static('public'));
 
 io.on('connection', (socket) => {
     console.log('New user connected');
@@ -16,6 +21,7 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', ({ username, room }) => {
         socket.join(room);
         socket.broadcast.to(room).emit('message', `${username} has joined the chat`);
+        console.log(`${username} joined room ${room}`);
 
         socket.on('chatMessage', (msg) => {
             io.to(room).emit('message', `${username}: ${msg}`);
