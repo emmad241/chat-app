@@ -18,18 +18,21 @@ const PORT = process.env.PORT || 3000;
 io.on('connection', (socket) => {
     console.log('New user connected');
 
-    socket.on('joinRoom', ({ username, room }) => {
-        socket.join(room);
-        socket.broadcast.to(room).emit('message', `${username} has joined the chat`);
-        console.log(`${username} joined room ${room}`);
+    socket.on('joinRoom', (data) => {
+        socket.join(data.room);
+        io.to(data.room).emit('receiveMessage', data);
+        console.log(`${data.username} joined room ${data.room}`);
+    });
 
-        socket.on('chatMessage', (msg) => {
-            io.to(room).emit('message', `${username}: ${msg}`);
-        });
+    socket.on('sendMessage', (data) => {
+        io.to(data.room).emit('receiveMessage', data);
+        console.log(data);
+    });
 
-        socket.on('leaveRoom', () => {
-            io.to(room).emit('message', `${username} has left the chat`);
-        });
+    socket.on('leaveRoom', (data) => {
+        io.to(data.room).emit('receiveMessage', data);
+        console.log("test")
+        socket.leave()
     });
 });
 
